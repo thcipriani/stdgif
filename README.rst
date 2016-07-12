@@ -3,8 +3,8 @@ stdgif
 
 Standard output for gifs.
 
-Dumps gifs to stdout or creates shell scripts that can be sources from shell
-``.bashrc``.
+Dumps gifs to stdout or creates shell scripts that can be sourced from a
+``.bashrc`` or other shell initialization file.
 
 .. image:: http://tyler.zone/stdgif-readme.gif
    :alt: Jerimiah Johnson approved
