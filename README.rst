@@ -6,8 +6,14 @@ Standard output for gifs.
 Dumps gifs to stdout or creates shell scripts that can be sourced from a
 ``.bashrc`` or other shell initialization file.
 
+.. image:: http://tyler.zone/stdgif-bootie-dog.gif
+   :alt: Bootie Dog approved
+
 .. image:: http://tyler.zone/stdgif-readme.gif
    :alt: Jerimiah Johnson approved
+
+.. image:: http://tyler.zone/stdgif-spiderman.gif
+   :alt: Spiderman Mind Blown
 
 The clever algorithm (that I had nothing to do with) that shows
 amazing ANSI renderings of images was ported from Stefan Haustein's
