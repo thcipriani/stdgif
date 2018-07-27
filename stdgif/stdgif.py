@@ -58,6 +58,7 @@ import time
 import requests
 
 from PIL import Image
+from x256 import x256
 
 
 FRAMES = {}
@@ -151,11 +152,16 @@ def rgb_to_tput(rgb):
     return [clamp(c, 0, 255) for c in rgb.split(',')]
 
 
-def make_char(c, fg, bg):
+def make_char(c, fg, bg, eight_bit=False):
     """Return escaped ansi char."""
-    if fg[0] == fg[1] == fg[2] == bg[0] == bg[1] == bg[2] == 0:
+    if sum(fg + bg) < 255:
         return '\x1b[0m '
 
+    if eight_bit:
+        return '{}{}{}'.format(
+            esc(38, 5, x256.from_rgb(fg)),
+            esc(48, 5, x256.from_rgb(bg)),
+            c.encode('utf-8'))
     return '{}{}{}'.format(
             esc(38, 2, fg[0], fg[1], fg[2]),
             esc(48, 2, bg[0], bg[1], bg[2]),
@@ -167,7 +173,7 @@ def make_percent(num, den):
     return math.floor(100.0 * (float(num) / max(den, 1)))
 
 
-def handle_pixel(img, x, y):
+def handle_pixel(img, x, y, eight_bit=False):
     """Turn a 4x8 dict of rgb tuples into a single-ansi char."""
     w, h = img.size
     x_offset = min(x + 4, w)
@@ -249,17 +255,17 @@ def handle_pixel(img, x, y):
         avg_bg_rgb = avg_fg_rgb
         avg_fg_rgb = tmp
 
-    return make_char(character, avg_fg_rgb, avg_bg_rgb)
+    return make_char(character, avg_fg_rgb, avg_bg_rgb, eight_bit)
 
 
-def frame_to_ansi(frame):
+def frame_to_ansi(frame, eight_bit=False):
     """Convert an image into 4x8 chunks and return ansi."""
     w, h = frame.size
 
     buf = '\x1b[0m'
     for y in range(0, h, 8):
         for x in range(0, w, 4):
-            buf += handle_pixel(frame, x, y)
+            buf += handle_pixel(frame, x, y, eight_bit)
 
         buf += '\n'
 
@@ -297,6 +303,8 @@ def main():
                     help='Print the seperator between frames of a gif '
                          '(this can be useful if piping output into '
                          'another file or program)')
+    ap.add_argument('--256', dest='eight_bit', action='store_true',
+                    help='256 bit mode rather than truecolor')
 
     ap.add_argument('img', type=str, help='File to show')
     args = ap.parse_args()
@@ -346,7 +354,7 @@ def main():
                   file=sys.stderr,
                   end='')
             if not FRAMES.get(offset):
-                FRAMES[offset] = frame_to_ansi(frame)
+                FRAMES[offset] = frame_to_ansi(frame, args.eight_bit)
 
             offset += 1
         except EOFError:
