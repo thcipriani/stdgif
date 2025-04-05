@@ -12,7 +12,7 @@ Dumps gifs to stdout or creates shell scripts that can be sourced from a
 .. image:: http://tyler.zone/stdgif-readme.gif
    :alt: Jerimiah Johnson approved
 
-.. image:: http://tyler.zone/stdgif-spiderman.gif
+.. image:: doc/stdgif-spiderman.gif
    :alt: Spiderman Mind Blown
 
 The clever algorithm (that I had nothing to do with) that shows
