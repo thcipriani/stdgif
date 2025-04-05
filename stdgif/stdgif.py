@@ -64,6 +64,10 @@ from x256 import x256
 
 FRAMES = {}
 
+SHOW_CURSOR = '\x1b[34h\x1b[?25h'
+CLEAR_SCREEN = '\x1b[H\x1b[J'
+RESET = '\x1b[0m'
+
 BITMAPS = {
     0x00000000: ' ',
     # Block graphics
@@ -156,7 +160,7 @@ def rgb_to_tput(rgb):
 def make_char(c, fg, bg, eight_bit=False):
     """Return escaped ansi char."""
     if sum(fg + bg) < 255:
-        return '\x1b[0m '
+        return f'{RESET} '
 
     if eight_bit:
         return '{}{}{}'.format(
@@ -263,7 +267,7 @@ def frame_to_ansi(frame, eight_bit=False):
     """Convert an image into 4x8 chunks and return ansi."""
     w, h = frame.size
 
-    buf = '\x1b[0m'
+    buf = RESET
     for y in range(0, h, 8):
         for x in range(0, w, 4):
             buf += handle_pixel(frame, x, y, eight_bit)
@@ -279,7 +283,8 @@ def die(out=sys.stdout, gif=None):
         os.remove(gif)
     if out.name != '<stdout>':
         print('printf ', file=out, end='')
-    print('\x1b[34h\x1b[?25h\x1b[0m\x1b[0m', file=out)
+
+    print(f'{SHOW_CURSOR}{RESET}', file=out)
     sys.exit(0)
 
 
@@ -297,7 +302,7 @@ def main():
                     help='Loop forever')
     ap.add_argument('-d', '--delay', type=float, default=0.1,
                     help='The delay between images that make up a gif')
-    ap.add_argument('-o', '--output', type=argparse.FileType('wb', 0),
+    ap.add_argument('-o', '--output', type=argparse.FileType('w'),
                     help='Generated bash script path - suitable for sourcing '
                          'from your .bashrc', default=sys.stdout)
     ap.add_argument('-s', '--seperator', type=str, default=None,
@@ -382,6 +387,7 @@ def main():
             if args.output.name != '<stdout>':
                 print('cat <<FILE{}'.format(offset), file=args.output)
 
+            # Move the cursor up to the top of the screen
             print('\r\x1b[{}A'.format(h), end='', file=args.output)
             print(FRAMES[offset], end='', file=args.output)
             if args.seperator:
@@ -403,7 +409,7 @@ def main():
 
             if args.output.name != '<stdout>':
                 print('\nFILE{}\n'.format(offset), file=args.output)
-                print('printf \x1b[H\x1b[J', file=args.output)
+                print(f"printf '{CLEAR_SCREEN}'", file=args.output)
 
             break
 
