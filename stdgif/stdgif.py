@@ -10,7 +10,7 @@
   Requirements: requests <http://docs.python-requests.org>,
                 Pillow <https://python-pillow.org/>
 
-  usage: stdgif [-h] [-w WIDTH] [-f] [-d DELAY] [-o OUTPUT] [-s SEPERATOR] img
+  usage: stdgif [-h] [-w WIDTH] [--256] [-f] [-d DELAY] [-o OUTPUT] [-s SEPERATOR] img
 
   positional arguments:
     img                   File to show
@@ -19,6 +19,7 @@
     -h, --help            show this help message and exit
     -w WIDTH, --width WIDTH
                           Width of file to show
+    --256                 256 bit mode rather than truecolor
     -f, --forever         Loop forever
     -d DELAY, --delay DELAY
                           The delay between images that make up a gif
@@ -30,7 +31,7 @@
                           be useful if piping output into another file or
                           program)
 
-  Copyright (c) 2016 Tyler Cipriani <tyler@tylercipriani.com>
+  Copyright (c) 2016-2025 Tyler Cipriani <tyler@tylercipriani.com>
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -161,11 +162,11 @@ def make_char(c, fg, bg, eight_bit=False):
         return '{}{}{}'.format(
             esc(38, 5, x256.from_rgb(fg)),
             esc(48, 5, x256.from_rgb(bg)),
-            c.encode('utf-8'))
+            c)
     return '{}{}{}'.format(
-            esc(38, 2, fg[0], fg[1], fg[2]),
-            esc(48, 2, bg[0], bg[1], bg[2]),
-            c.encode('utf-8'))
+        esc(38, 2, fg[0], fg[1], fg[2]),
+        esc(48, 2, bg[0], bg[1], bg[2]),
+        c)
 
 
 def make_percent(num, den):
@@ -218,8 +219,8 @@ def handle_pixel(img, x, y, eight_bit=False):
             else:
                 bg_color.append((r, g, b))
 
-    avg_bg_rgb = [sum(color) / len(color) for color in zip(*bg_color)]
-    avg_fg_rgb = [sum(color) / len(color) for color in zip(*fg_color)]
+    avg_bg_rgb = [sum(color) // len(color) for color in zip(*bg_color)]
+    avg_fg_rgb = [sum(color) // len(color) for color in zip(*fg_color)]
 
     if not avg_fg_rgb:
         avg_fg_rgb = [0, 0, 0]
@@ -227,7 +228,7 @@ def handle_pixel(img, x, y, eight_bit=False):
     if not avg_bg_rgb:
         avg_fg_rgb = [0, 0, 0]
 
-    best_diff = sys.maxint
+    best_diff = sys.maxsize
     inverted = False
     for bitmap in list(BITMAPS.keys()):
         xor = bin(bitmap ^ bits)
@@ -248,7 +249,7 @@ def handle_pixel(img, x, y, eight_bit=False):
     if best_diff > 10:
         inverted = False
         character = u' \u2591\u2592\u2593\u2588'[
-                min(4, len(fg_color) * 5 / 32)]
+                min(4, len(fg_color) * 5 // 32)]
 
     if inverted:
         tmp = avg_bg_rgb
@@ -328,7 +329,7 @@ def main():
 
     w = args.width * 4
     ow, oh = img.size
-    h = oh * w / ow
+    h = oh * w // ow
     size = (w, h)
 
     offset = 0
